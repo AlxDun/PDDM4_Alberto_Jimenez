@@ -1,46 +1,46 @@
-# Sistema de gestion de transacciones
+# Transaction Management System
 
-Este es un sistema que permite la administracion de las transacciones. El sistema esta construido con Node.js y Express y la bade de datos esta siendo gestionada con MySQL.
+This is a system that allows for transaction management. The system is built with Node.js and Express, and the database is managed with MySQL.
 
 ---
 
-## Tecnologias utilizadas
+## Technologies Used
 
 - Node.js
 - Express.js
 - MySQL
-- csv-parser
-- vite
+- CSV Parser
+- Invite
 
 ---
 
-## 📁 Estructura del proyecto
-```bash
+## Project structure
+``` bash
 PPDM4_ALBERTO_JIMENEZ/
 │
 ├── docs/ # Documentation
-│       ...
-├── server/ # El programa en si
-│       ...
+│...
+├── server/ # The Program Itself
+│...
 ├── .gitignore
 └── README.md
 ```
 
-## Instalacion
+## Installation
 
-1. Clonar el repositorio:
+1. Clone the repository:
 
-```bash
+```
 git clone https://github.com/AlxDun/PDDM4_Alberto_Jimenez.git
 cd PPDM4_ALBERTO_JIMENEZ
 ```
-2. Instalar todas las dependencias:
+2. Install all Dependencies:
 
-```bash
+```
 npm install
 ```
 
-3. Inicializa el backend:
-```bash
-node server/index.js
+3. Initialize the backend:
+```
+ node-server/index.js
 ```
