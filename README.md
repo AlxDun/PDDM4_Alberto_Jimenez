@@ -31,34 +31,16 @@ PPDM4_ALBERTO_JIMENEZ/
 1. Clonar el repositorio:
 
 ```bash
-git clone https://github.com/jcomte23/biblioteca-easy.git
-cd biblioteca
+git clone https://github.com/AlxDun/PDDM4_Alberto_Jimenez.git
+cd PPDM4_ALBERTO_JIMENEZ
 ```
-2. Instala dependencias:
+2. Instalar todas las dependencias:
 
 ```bash
 npm install
 ```
 
-3. Crea y configura el archivo .env:
-
-```bash
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=password
-DB_NAME=db_name
-DB_PORT=3306
-```
-
-4. Inicializa el backend:
+3. Inicializa el backend:
 ```bash
 node server/index.js
 ```
-
-5. Inicializa el frontend:
-```bash
-npm run dev
-```
-
-# 📬 Licencia
-Este proyecto está bajo licencia MIT. Puedes usarlo, modificarlo y distribuirlo libremente.

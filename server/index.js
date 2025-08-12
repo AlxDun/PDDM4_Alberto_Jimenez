@@ -26,7 +26,7 @@ app.get('/transactions', async (request, response) => {
 app.get('/transactions/:transaction_id', async (request, response) => {
     try {
         const { transaction_id } = request.params
-        const query = 'SELECT * FROM transactions;' /*'SELECT transactions.transaction_id as transaction, clients.name as client, billing.billing_id, transactions.transaction_state FROM transactions JOIN clients ON clients.client_id = transactions.client_id JOIN billing ON billing.billing_id = transactions.billing_id WHERE transaction_id = ?;'*/
+        const query = 'SELECT transactions.transaction_id as transaction, clients.name as client, billing.billing_id, transactions.transaction_state FROM transactions JOIN clients ON clients.client_id = transactions.client_id JOIN billing ON billing.billing_id = transactions.billing_id WHERE transaction_id = ?;'
         const [rows] = await pool.query(query, transaction_id)
         response.json(rows[0])
     } catch (error) {
@@ -42,27 +42,31 @@ app.get('/transactions/:transaction_id', async (request, response) => {
 app.post('/transactions', async (request, response) => {
     try {
         const {
-            isbn,
-            id_usuario,
-            fecha_prestamo,
-            fecha_devolucion,
-            estado
+            transaction_id,
+            transaction_date,
+            transaction_amount,
+            transaction_state,
+            transaction_type,
+            client_id,
+            billing_id
         } = request.body
 
-        const query = 'INSERT INTO transactions (isbn, id_usuario, fecha_prestamo, fecha_devolucion, estado) VALUES (?, ?, ?, ?, ?);'
+        const query = 'INSERT INTO transactions (transaction_id, transaction_date, transaction_amount, transaction_state, transaction_type, client_id, billing_id) VALUES (?, ?, ?, ?, ?, ?, ?);'
 
         const values = [
-            isbn,
-            id_usuario,
-            fecha_prestamo,
-            fecha_devolucion,
-            estado
+            transaction_id,
+            transaction_date,
+            transaction_amount,
+            transaction_state,
+            transaction_type,
+            client_id,
+            billing_id
         ]
 
         const [result] = await pool.query(query, values)
 
         response.status(201).json({
-            message: "prestamo creado exitosamente"
+            message: "Transaction created successfully."
         })
 
     } catch (error) {
@@ -80,28 +84,30 @@ app.put('/transactions/:transaction_id', async (request, response) => {
         const { transaction_id } = request.params
 
         const {
-            isbn,
-            id_usuario,
-            fecha_prestamo,
-            fecha_devolucion,
-            estado
+            transaction_date,
+            transaction_amount,
+            transaction_state,
+            transaction_type,
+            client_id,
+            billing_id
         } = request.body
 
-        const query = 'UPDATE transactions SET isbn = ?, id_usuario = ?, fecha_prestamo = ?, fecha_devolucion = ? , estado = ? WHERE transaction_id = ?;'
+        const query = 'UPDATE transactions SET transaction_date = ?, transaction_amount = ?, transaction_state = ?, transaction_type = ?, client_id = ?, billing_id = ? WHERE transaction_id = ?;'
 
         const values = [
-            isbn,
-            id_usuario,
-            fecha_prestamo,
-            fecha_devolucion,
-            estado,
+            transaction_date,
+            transaction_amount,
+            transaction_state,
+            transaction_type,
+            client_id,
+            billing_id,
             transaction_id
         ]
 
         const [result] = await pool.query(query, values)
 
         if (result.affectedRows != 0) {
-            return response.json({ message: "prestamo actualizado" })
+            return response.json({ message: "Transaction updated." })
         }
 
     } catch (error) {
@@ -125,7 +131,7 @@ app.delete('/transactions/:transaction_id', async (request, response) => {
         const [result] = await pool.query(query, values)
 
         if (result.affectedRows != 0) {
-            return response.json({ message: "prestamo eliminado" })
+            return response.json({ message: "transaction deleted" })
         }
 
     } catch (error) {
@@ -138,117 +144,11 @@ app.delete('/transactions/:transaction_id', async (request, response) => {
     }
 })
 
-// 1. Ver todos los préstamos de un usuario
-app.get('/transactions/usuario/:id', async (req, res) => {
+
+// 2. Pending transactions
+app.get('/transactions/pending', async (req, res) => {
     try {
-        const { id } = req.params;
-        const [rows] = await pool.query(`
-            SELECT 
-                p.transaction_id,
-                p.fecha_prestamo,
-                p.fecha_devolucion,
-                p.estado,
-                l.isbn,
-                l.titulo AS libro
-            FROM transactions p
-            LEFT JOIN libros l ON p.isbn = l.isbn
-            WHERE p.id_usuario = ?
-        `, [id]);
-
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            endpoint: req.originalUrl,
-            method: req.method,
-            message: error.message
-        });
-    }
-});
-
-// 2. Listar los 5 libros más prestados
-app.get('/libros/mas-prestados', async (req, res) => {
-    try {
-        const [rows] = await pool.query(`
-            SELECT 
-                l.isbn,
-                l.titulo,
-                COUNT(p.transaction_id) AS total_prestamos
-            FROM transactions p
-            LEFT JOIN libros l ON p.isbn = l.isbn
-            GROUP BY l.isbn, l.titulo
-            ORDER BY total_prestamos DESC
-            LIMIT 5
-        `);
-
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            endpoint: req.originalUrl,
-            method: req.method,
-            message: error.message
-        });
-    }
-});
-
-// 3. Listar clients con préstamos en estado "retrasado"
-app.get('/clients/con-retrasos', async (req, res) => {
-    try {
-        const [rows] = await pool.query(`
-            SELECT DISTINCT
-                u.id_usuario,
-                u.name
-            FROM transactions p
-            LEFT JOIN clients u ON p.id_usuario = u.id_usuario
-            WHERE p.estado = 'retrasado'
-        `);
-
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            endpoint: req.originalUrl,
-            method: req.method,
-            message: error.message
-        });
-    }
-});
-
-// 4. Listar préstamos activos
-app.get('/transactions/activos', async (req, res) => {
-    try {
-        const [rows] = await pool.query(`
-            SELECT p.transaction_id, p.fecha_prestamo, p.fecha_devolucion, p.estado, u.name AS usuario, l.titulo AS libro FROM transactions p LEFT JOIN clients u ON p.id_usuario = u.id_usuario LEFT JOIN libros l ON p.isbn = l.isbn WHERE p.estado = 'activo'
-        `);
-
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            endpoint: req.originalUrl,
-            method: req.method,
-            message: error.message
-        });
-    }
-});
-
-// 5. Historial de un libro por su ISBN
-app.get('/transactions/historial/:isbn', async (req, res) => {
-    try {
-        const { isbn } = req.params;
-        const [rows] = await pool.query(`
-            SELECT 
-                p.transaction_id,
-                p.fecha_prestamo,
-                p.fecha_devolucion,
-                p.estado,
-                u.name AS usuario
-            FROM transactions p
-            LEFT JOIN clients u ON p.id_usuario = u.id_usuario
-            WHERE p.isbn = ?
-            ORDER BY p.fecha_prestamo DESC
-        `, [isbn]);
+        const [rows] = await pool.query("SELECT c.name AS Client name, t.transaction_id AS Transaction ID, t.transaction_state AS Transaction state FROM transactions t LEFT JOIN clients c ON t.client_id = c.client_id WHERE t.transaction_state = 'Pendiente';");
 
         res.json(rows);
     } catch (error) {
