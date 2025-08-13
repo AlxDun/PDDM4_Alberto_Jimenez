@@ -10,7 +10,7 @@ This is a system that allows for transaction management. The system is built wit
 - Express.js
 - MySQL
 - CSV Parser
-- Invite
+- Vite
 
 ---
 
